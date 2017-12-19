@@ -3,17 +3,21 @@
 import { Stream } from './Stream';
 
 function * videoList() {
-    yield '1n_LBpCkOjU';
+    yield {videoId: '1n_LBpCkOjU', startTime: 580 };
 
     while(true) {
-        yield 'Cnchea6LHN0';
+        yield {videoId: 'Cnchea6LHN0', startTime: 0 };
     }
 }
 
 const nextVideo = videoList();
 
-function getNextVideoId() {
+function getNextVideo() {
     return nextVideo.next().value;
+}
+
+function reportError(event) {
+    console.warn('error from youtube player reported:', event);
 }
 
 export class YoutubePlayerService {
@@ -49,6 +53,9 @@ export class YoutubePlayerService {
                             break;
                         default:
                     }
+                },
+                onError: (event) => {
+                    reportError(event);
                 }
             }
         });
@@ -62,7 +69,9 @@ export class YoutubePlayerService {
             return;
         }
 
-        this._player.loadVideoById(getNextVideoId())
+        const {videoId, startTime} = getNextVideo();
+
+        this._player.loadVideoById(videoId, startTime)
     }
 
     _onAPIReady() {
