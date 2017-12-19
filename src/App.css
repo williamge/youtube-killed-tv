@@ -1,0 +1,49 @@
+.App {
+  text-align: center;
+
+  display: grid;
+  grid-template-columns: 40px auto 40px;
+  grid-template-areas: 
+    "header header header"
+    ". player . "
+    ". controls . ";
+}
+
+.App-header {
+  background-color: #222;
+  padding: 0.1em;
+  color: white;
+
+  grid-area: header;
+}
+
+.App-title {
+  font-size: 1.5em;
+}
+
+
+
+.player-container {
+  background-color: hsl(0, 0%, 75%);
+
+  grid-area: player;
+  display: flex;
+  justify-content: center;
+}
+
+.player-container .player {
+  background-color: hsl(0, 0%, 50%);
+  width: 853px;
+  height: 480px;
+}
+
+.controls-container {
+  grid-area: controls;
+  display: flex;
+
+  height: 3em;
+}
+
+.controls-container > * {
+  background-color: hsl(0, 15%, 65%);
+}
