@@ -38,7 +38,7 @@ const ControlsDiv = (props) => {
                 onClick={() => {
                     props.youtubeService.skipVideo()
                 }}
-            >Next Channel</button>
+            >Change the Channel</button>
         </div>
     );
 }
