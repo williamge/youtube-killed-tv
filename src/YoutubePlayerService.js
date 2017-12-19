@@ -3,27 +3,54 @@
 import { Stream } from './Stream';
 
 function * videoList() {
-    yield {videoId: '1n_LBpCkOjU', startTime: 580 };
+    yield ['1n_LBpCkOjU'];
 
     while(true) {
-        yield {videoId: 'Cnchea6LHN0', startTime: 0 };
+        yield ['Cnchea6LHN0'];
     }
 }
 
 const nextVideo = videoList();
 
-function getNextVideo() {
-    return nextVideo.next().value;
+function getNextVideoBundle() {
+    const videoIds = nextVideo.next().value;
+    return new VideoBundle(videoIds);
 }
 
 function reportError(event) {
     console.warn('error from youtube player reported:', event);
 }
 
+class VideoBundle {
+    constructor(videoIds) {
+        this._videoIds = videoIds;
+        this.currentPart = -1;
+    }
+
+    hasMoreParts() {
+        return this._videoIds.length - 1 !== this.currentPart;
+    }
+
+    nextPartId() {
+        this.currentPart++;
+
+        if (this.currentPart >= this._videoIds.length) {
+            throw new Error("we went too far with nextPartId");
+        }
+
+        return {
+            videoId: this._videoIds[this.currentPart],
+            startTime: 0
+        };
+    }
+}
+
 export class YoutubePlayerService {
     constructor() {
         this.isYoutubeApiReady = new Stream(false);
         this._player = null;
+
+        this._currentVideoBundle = null;
     }
 
     loadIframePlayer() {
@@ -44,12 +71,14 @@ export class YoutubePlayerService {
             videoId: "ksZh-FHuKpk",
             events: {
                 onReady: (event) => {
+                    this._currentVideoBundle = new VideoBundle(['ksZh-FHuKpk']);
+                    this._currentVideoBundle.nextPartId(); // we're about to play the video at this stage, so go to the next part already
                     event.target.playVideo();
                 },
                 onStateChange: ({ data }) => {
                     switch (data) {
                         case YT.PlayerState.ENDED:
-                            this.nextVideo();
+                            this._loadNextVideoPart();
                             break;
                         default:
                     }
@@ -63,14 +92,24 @@ export class YoutubePlayerService {
         this._player = player;
     }
 
-    nextVideo() {
+    skipVideo() {
         if (this._player == null) {
-            console.warn('Tried to call nextVideo with no player instance');
+            console.warn('Tried to call skipVideo with no player instance');
             return;
         }
 
-        const {videoId, startTime} = getNextVideo();
+        this._currentVideoBundle = getNextVideoBundle();
 
+        this._loadNextVideoPart();
+    }
+
+    _loadNextVideoPart() {
+        if (!this._currentVideoBundle.hasMoreParts()) {
+            this._currentVideoBundle = getNextVideoBundle();  
+        }
+
+        const { videoId, startTime } = this._currentVideoBundle.nextPartId();
+            
         this._player.loadVideoById(videoId, startTime)
     }
 
