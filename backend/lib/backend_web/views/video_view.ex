@@ -11,6 +11,9 @@ defmodule YoutubeTvWeb.VideoView do
   end
 
   def render("video.json", %{video: video}) do
-    %{id: video.id}
+    %{
+      id: video.id,
+      video_ids: video.youtube_id_list
+    }
   end
 end

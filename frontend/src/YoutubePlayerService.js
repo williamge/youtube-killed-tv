@@ -1,6 +1,7 @@
 /* global YT */
 
 import { Stream } from './Stream';
+import { getNextVideoIds } from './VideoApi';
 
 function * videoList() {
     yield ['1n_LBpCkOjU'];
@@ -12,8 +13,9 @@ function * videoList() {
 
 const nextVideo = videoList();
 
-function getNextVideoBundle() {
-    const videoIds = nextVideo.next().value;
+async function getNextVideoBundle() {
+    // const videoIds = nextVideo.next().value;
+    const videoIds = await getNextVideoIds();
     return new VideoBundle(videoIds);
 }
 
@@ -92,20 +94,20 @@ export class YoutubePlayerService {
         this._player = player;
     }
 
-    skipVideo() {
+    async skipVideo() {
         if (this._player == null) {
             console.warn('Tried to call skipVideo with no player instance');
             return;
         }
 
-        this._currentVideoBundle = getNextVideoBundle();
+        this._currentVideoBundle = await getNextVideoBundle();
 
         this._loadNextVideoPart();
     }
 
-    _loadNextVideoPart() {
+    async _loadNextVideoPart() {
         if (!this._currentVideoBundle.hasMoreParts()) {
-            this._currentVideoBundle = getNextVideoBundle();  
+            this._currentVideoBundle = await getNextVideoBundle();  
         }
 
         const { videoId, startTime } = this._currentVideoBundle.nextPartId();

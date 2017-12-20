@@ -7,5 +7,8 @@ defmodule YoutubeTvWeb.Router do
 
   scope "/api", YoutubeTvWeb do
     pipe_through :api
+
+    get "/videos", VideoController, :index
+    get "/getNextVideo", VideoController, :next
   end
 end
