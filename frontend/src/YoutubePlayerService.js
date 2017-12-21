@@ -3,9 +3,51 @@
 import { Stream } from './Stream';
 import { VideoBundle } from './VideoBundle';
 
+function accumulateInLocalStorage(key, itemToAdd) {
+    const jsonBlob = localStorage.getItem(key);
+
+    const parsedList = (jsonBlob === null) ? [] : JSON.parse(jsonBlob);
+
+    const newList = parsedList.concat(itemToAdd);
+
+    localStorage.setItem(key, JSON.stringify(newList));
+}
+
 //TODO: send this data back to the server
 function reportError(event) {
     console.warn('error from youtube player reported:', event);
+}
+
+function getCurrentEpochSeconds() {
+    return Math.round((new Date()).getTime() / 1000);
+}
+
+function reportSkip(videoBundle) {
+    const SKIPS_KEY = 'skips';
+
+    const makeSkipBlob = function(videoBundle) {
+        return {
+            first_video_id: videoBundle.videoIds[0],
+            part_skipped_on: videoBundle.currentPart,
+            time: getCurrentEpochSeconds()
+        };
+    };
+
+    const blobToSend = makeSkipBlob(videoBundle);
+
+    fetch(`/api/reportSkip`, {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(blobToSend)
+    }).then((response) => {
+        if (!response.ok) {
+            accumulateInLocalStorage(SKIPS_KEY, blobToSend)
+        }
+    }).catch(() => {
+        accumulateInLocalStorage(SKIPS_KEY, blobToSend)
+    });
 }
 
 export class YoutubePlayerService {
@@ -79,6 +121,8 @@ export class YoutubePlayerService {
             console.warn('Tried to call skipVideo with no player instance');
             return;
         }
+
+        reportSkip(this._currentVideoBundle);
 
         this._currentVideoBundle = await this.videoStore.nextVideo();
 

@@ -1,22 +1,22 @@
 export class VideoBundle {
     constructor(videoIds) {
-        this._videoIds = videoIds;
-        this._currentPart = -1;
+        this.videoIds = videoIds;
+        this.currentPart = -1;
     }
 
     hasMoreParts() {
-        return this._videoIds.length - 1 !== this._currentPart;
+        return this.videoIds.length - 1 !== this.currentPart;
     }
 
     nextPartId() {
-        this._currentPart++;
+        this.currentPart++;
 
-        if (this._currentPart >= this._videoIds.length) {
+        if (this.currentPart >= this.videoIds.length) {
             throw new Error("we went too far with nextPartId");
         }
 
         return {
-            videoId: this._videoIds[this._currentPart],
+            videoId: this.videoIds[this.currentPart],
             startTime: 0
         };
     }

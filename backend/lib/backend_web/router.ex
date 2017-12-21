@@ -10,5 +10,7 @@ defmodule YoutubeTvWeb.Router do
 
     get "/videos", VideoController, :index
     get "/getNextVideo", VideoController, :next
+
+    post "/reportSkip", SkipController, :report
   end
 end
