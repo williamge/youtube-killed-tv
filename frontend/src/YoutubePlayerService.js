@@ -3,19 +3,11 @@
 import { Stream } from './Stream';
 import { getNextVideoIds } from './VideoApi';
 
-function * videoList() {
-    yield ['1n_LBpCkOjU'];
-
-    while(true) {
-        yield ['Cnchea6LHN0'];
-    }
-}
-
-const nextVideo = videoList();
+let countOfPlayedVideos = 0;
+let startupSeed = 5;
 
 async function getNextVideoBundle() {
-    // const videoIds = nextVideo.next().value;
-    const videoIds = await getNextVideoIds();
+    const videoIds = await getNextVideoIds(startupSeed + (countOfPlayedVideos++));
     return new VideoBundle(videoIds);
 }
 
@@ -53,6 +45,9 @@ export class YoutubePlayerService {
         this._player = null;
 
         this._currentVideoBundle = null;
+
+        this._playerWidth = 640;
+        this._playerHeight = 480;
     }
 
     loadIframePlayer() {
@@ -71,6 +66,8 @@ export class YoutubePlayerService {
     createPlayerOn(container) {
         const player = new YT.Player(container, {
             videoId: "ksZh-FHuKpk",
+            width: this._playerWidth,
+            height: this._playerHeight,
             events: {
                 onReady: (event) => {
                     this._currentVideoBundle = new VideoBundle(['ksZh-FHuKpk']);
@@ -92,6 +89,18 @@ export class YoutubePlayerService {
         });
 
         this._player = player;
+    }
+
+    resizePlayer(width, height) {
+        if (this._player == null) {
+            this._playerWidth = width;
+            this._playerHeight = height;
+            
+            console.warn('Tried to call resizePlayer with no player instance');
+            return;
+        }
+        
+        this._player.setSize(width, height);
     }
 
     async skipVideo() {

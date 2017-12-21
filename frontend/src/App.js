@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import { YoutubePlayerService } from './YoutubePlayerService';
+import ContainerDimensions from 'react-container-dimensions'
 
 class PlayerDiv extends Component {
     constructor(props) {
@@ -9,21 +10,40 @@ class PlayerDiv extends Component {
         this.container = null;
     }
 
-    componentDidMount() {
+    _containerMounted() {
         const { youtubeService } = this.props;
 
-        this.player = youtubeService.createPlayerOn(this.container);
+        youtubeService.createPlayerOn(this.container);
+    }
+
+    _resizeYoutubePlayer(width, height) {
+        const { youtubeService } = this.props;
+
+        youtubeService.resizePlayer(width, height);
     }
 
     refContainer = (container) => {
-        this.container = container;
+        if (this.container == null) {
+            this.container = container;
+            this._containerMounted();
+        } else {
+            this.container = container;
+        }
     };
 
     render() {
         return (
             <div className="player-container">
                 <div className="player">
-                    <div className="uncontrolled-yt-player" ref={this.refContainer}></div>
+                    <ContainerDimensions>
+                        {
+                            ({width, height}) => {
+                                this._resizeYoutubePlayer(width, height);
+                                return <div className="uncontrolled-yt-player" ref={this.refContainer}></div>;
+                            }
+                        }
+                    </ContainerDimensions>
+                    {/* <div className="uncontrolled-yt-player" ref={this.refContainer}></div> */}
                 </div>
             </div>
         );

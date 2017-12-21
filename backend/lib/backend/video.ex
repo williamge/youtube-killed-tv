@@ -5,6 +5,7 @@ defmodule YoutubeTv.Video do
 
 
   schema "videos" do
+    field :first_video_id, :string
     field :youtube_id_list, {:array, :string}
 
     timestamps()
@@ -13,7 +14,7 @@ defmodule YoutubeTv.Video do
   @doc false
   def changeset(%Video{} = video, attrs) do
     video
-    |> cast(attrs, [:youtube_id_list])
-    |> validate_required([:youtube_id_list])
+    |> cast(attrs, [:youtube_id_list, :first_video_id])
+    |> validate_required([:youtube_id_list, :first_video_id])
   end
 end
