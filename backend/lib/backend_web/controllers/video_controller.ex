@@ -10,15 +10,9 @@ defmodule YoutubeTvWeb.VideoController do
   end
 
   def next(conn, %{"seed" => seed}) do
-    percent_of_table = 100;
+    integer_seed = String.to_integer seed
 
-    %{rows: rows} = YoutubeTv.Repo.query!("
-      SELECT id, youtube_id_list FROM videos TABLESAMPLE BERNOULLI ($1) REPEATABLE ($2);
-    ", [percent_of_table, String.to_integer seed])
-
-    videos = rows
-    |> Enum.map(fn [ id, youtube_id_list] -> %{ id: id, youtube_id_list: youtube_id_list } end)
-
+    videos = YoutubeTv.Video.get_random_videos(integer_seed)
 
     render(conn, "index.json", videos: videos)
   end
