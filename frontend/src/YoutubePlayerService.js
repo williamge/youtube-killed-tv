@@ -1,46 +1,21 @@
 /* global YT */
 
 import { Stream } from './Stream';
-import { getNextVideoIds } from './VideoApi';
+import { VideoBundle } from './VideoBundle';
 
-let countOfPlayedVideos = 0;
-let startupSeed = 5;
-
-async function getNextVideoBundle() {
-    const videoIds = await getNextVideoIds(startupSeed + (countOfPlayedVideos++));
-    return new VideoBundle(videoIds);
-}
+// async function getNextVideoBundle() {
+//     const videoIds = await getNextVideoIds(startupSeed + (countOfPlayedVideos++));
+//     return new VideoBundle(videoIds);
+// }
 
 function reportError(event) {
     console.warn('error from youtube player reported:', event);
 }
 
-class VideoBundle {
-    constructor(videoIds) {
-        this._videoIds = videoIds;
-        this.currentPart = -1;
-    }
-
-    hasMoreParts() {
-        return this._videoIds.length - 1 !== this.currentPart;
-    }
-
-    nextPartId() {
-        this.currentPart++;
-
-        if (this.currentPart >= this._videoIds.length) {
-            throw new Error("we went too far with nextPartId");
-        }
-
-        return {
-            videoId: this._videoIds[this.currentPart],
-            startTime: 0
-        };
-    }
-}
-
 export class YoutubePlayerService {
-    constructor() {
+    constructor(videoStore) {
+        this.videoStore = videoStore;
+
         this.isYoutubeApiReady = new Stream(false);
         this._player = null;
 
@@ -92,10 +67,10 @@ export class YoutubePlayerService {
     }
 
     resizePlayer(width, height) {
-        if (this._player == null) {
-            this._playerWidth = width;
-            this._playerHeight = height;
-            
+        this._playerWidth = width;
+        this._playerHeight = height;
+
+        if (this._player == null) {            
             console.warn('Tried to call resizePlayer with no player instance');
             return;
         }
@@ -109,14 +84,14 @@ export class YoutubePlayerService {
             return;
         }
 
-        this._currentVideoBundle = await getNextVideoBundle();
+        this._currentVideoBundle = await this.videoStore.nextVideo();
 
-        this._loadNextVideoPart();
+        await this._loadNextVideoPart();
     }
 
     async _loadNextVideoPart() {
         if (!this._currentVideoBundle.hasMoreParts()) {
-            this._currentVideoBundle = await getNextVideoBundle();  
+            this._currentVideoBundle = await this.videoStore.nextVideo();  
         }
 
         const { videoId, startTime } = this._currentVideoBundle.nextPartId();
@@ -126,6 +101,6 @@ export class YoutubePlayerService {
 
     _onAPIReady() {
         this.isYoutubeApiReady.set(true);
-        console.log('api loaded');
+        console.log('youtube api loaded');
     }
 }

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import { VideoStore } from './VideoStore';
 import { YoutubePlayerService } from './YoutubePlayerService';
 import ContainerDimensions from 'react-container-dimensions'
 
@@ -76,13 +77,19 @@ class App extends Component {
     constructor(props) {
         super(props);
 
+        this.youtubeService = null;
+        this.videoStore = null;
+
         this.state = {
             isYoutubeApiReady: false
         };
     }
 
     componentDidMount() {
-        this.youtubeService = new YoutubePlayerService();
+        const startupSeed = 5;
+
+        this.videoStore = new VideoStore(startupSeed);
+        this.youtubeService = new YoutubePlayerService(this.videoStore);
         this.youtubeService.loadIframePlayer();
 
         this.youtubeService.isYoutubeApiReady.subscribe(isYoutubeApiReady => {

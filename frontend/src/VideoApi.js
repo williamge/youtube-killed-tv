@@ -1,7 +1,4 @@
-//experimental
-
 export async function getNextVideoIds(seed) {
-    // const response = await fetch(`/api/getNextVideo/${currentVideoId}?seed=${seed}`);
     const response = await fetch(`/api/getNextVideo?seed=${seed}`);
 
     if (!response.ok) {
@@ -11,10 +8,12 @@ export async function getNextVideoIds(seed) {
     const json = await response.json();
 
     // const json = {
-    //     data: {
-    //         ids: ['asdqd12', 'sd1d12d1d', 'sdfwd_asda', 'asd12d']
-    //     }
+    //     data: [{
+    //         video_ids: ['asdqd12', 'sd1d12d1d', 'sdfwd_asda', 'asd12d']
+    //     }]
     // }
 
-    return json.data.video_ids;
+    return json.data.map(videoJson => ({
+        videoIds: videoJson.video_ids
+    }));
 }
