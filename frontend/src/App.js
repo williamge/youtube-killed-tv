@@ -44,7 +44,6 @@ class PlayerDiv extends Component {
                             }
                         }
                     </ContainerDimensions>
-                    {/* <div className="uncontrolled-yt-player" ref={this.refContainer}></div> */}
                 </div>
             </div>
         );

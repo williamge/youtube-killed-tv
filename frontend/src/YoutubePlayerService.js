@@ -3,11 +3,7 @@
 import { Stream } from './Stream';
 import { VideoBundle } from './VideoBundle';
 
-// async function getNextVideoBundle() {
-//     const videoIds = await getNextVideoIds(startupSeed + (countOfPlayedVideos++));
-//     return new VideoBundle(videoIds);
-// }
-
+//TODO: send this data back to the server
 function reportError(event) {
     console.warn('error from youtube player reported:', event);
 }
@@ -52,7 +48,7 @@ export class YoutubePlayerService {
                 onStateChange: ({ data }) => {
                     switch (data) {
                         case YT.PlayerState.ENDED:
-                            this._loadNextVideoPart();
+                            this._playNextYoutubeVideo();
                             break;
                         default:
                     }
@@ -86,10 +82,12 @@ export class YoutubePlayerService {
 
         this._currentVideoBundle = await this.videoStore.nextVideo();
 
-        await this._loadNextVideoPart();
+        await this._playNextYoutubeVideo();
     }
 
-    async _loadNextVideoPart() {
+    // Note: The next youtube video could be a new video, or the next part of the same 
+    // video series (i.e. episode 1 part 1 -> episode 1 part 2)
+    async _playNextYoutubeVideo() {
         if (!this._currentVideoBundle.hasMoreParts()) {
             this._currentVideoBundle = await this.videoStore.nextVideo();  
         }

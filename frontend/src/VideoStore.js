@@ -9,10 +9,6 @@ export class VideoStore {
         this.currentVideoIndex = -1;
     }
 
-    async init() {
-        await this._ensureWeHaveEnoughVideos();
-    }
-
     async nextVideo() {
         await this._ensureWeHaveEnoughVideos();
 
