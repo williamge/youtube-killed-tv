@@ -25,15 +25,11 @@ function getCurrentEpochSeconds() {
 function reportSkip(videoBundle) {
     const SKIPS_KEY = 'skips';
 
-    const makeSkipBlob = function(videoBundle) {
-        return {
-            first_video_id: videoBundle.videoIds[0],
-            part_skipped_on: videoBundle.currentPart,
-            time: getCurrentEpochSeconds()
-        };
+    const blobToSend = {
+        first_video_id: videoBundle.videoIds[0],
+        part_skipped_on: videoBundle.currentPart,
+        time: getCurrentEpochSeconds()
     };
-
-    const blobToSend = makeSkipBlob(videoBundle);
 
     fetch(`/api/reportSkip`, {
         method: "POST",
@@ -50,30 +46,39 @@ function reportSkip(videoBundle) {
     });
 }
 
+//TODO: split this in to an api-loader, and a player service
+// call ApiLoader.loadIframePlayer, then it sets the player service on a stream
+
+export function loadYoutubeApi(videoStore) {
+    if (window.onYouTubeIframeAPIReady != null) {
+        throw new Error("A YouTube iframe player was already loaded")
+    }
+
+    const youtubeServiceStream = new Stream(null);
+
+    window.onYouTubeIframeAPIReady = () => {
+        console.log('youtube api ready');
+        youtubeServiceStream.set(new YoutubePlayerService(videoStore));
+    };
+
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    return youtubeServiceStream;
+}
+
 export class YoutubePlayerService {
     constructor(videoStore) {
         this.videoStore = videoStore;
 
-        this.isYoutubeApiReady = new Stream(false);
         this._player = null;
 
         this._currentVideoBundle = null;
 
         this._playerWidth = 640;
         this._playerHeight = 480;
-    }
-
-    loadIframePlayer() {
-        if (window.onYouTubeIframeAPIReady != null) {
-            throw new Error("A YouTube iframe player was already loaded")
-        }
-
-        window.onYouTubeIframeAPIReady = this._onAPIReady.bind(this);
-
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     }
 
     createPlayerOn(container) {
@@ -139,10 +144,5 @@ export class YoutubePlayerService {
         const { videoId, startTime } = this._currentVideoBundle.nextPartId();
             
         this._player.loadVideoById(videoId, startTime)
-    }
-
-    _onAPIReady() {
-        this.isYoutubeApiReady.set(true);
-        console.log('youtube api loaded');
     }
 }

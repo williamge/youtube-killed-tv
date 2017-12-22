@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import { VideoStore } from './VideoStore';
-import { YoutubePlayerService } from './YoutubePlayerService';
+import { loadYoutubeApi } from './YoutubePlayerService';
 import ContainerDimensions from 'react-container-dimensions'
 
 class PlayerDiv extends Component {
@@ -76,11 +76,10 @@ class App extends Component {
     constructor(props) {
         super(props);
 
-        this.youtubeService = null;
         this.videoStore = null;
 
         this.state = {
-            isYoutubeApiReady: false
+            youtubeService: null
         };
     }
 
@@ -88,16 +87,15 @@ class App extends Component {
         const startupSeed = 5;
 
         this.videoStore = new VideoStore(startupSeed);
-        this.youtubeService = new YoutubePlayerService(this.videoStore);
-        this.youtubeService.loadIframePlayer();
 
-        this.youtubeService.isYoutubeApiReady.subscribe(isYoutubeApiReady => {
-            this.setState({ isYoutubeApiReady })
+        loadYoutubeApi(this.videoStore).subscribe(youtubeService => {
+            this.setState({ youtubeService })
         });
     }
 
     render() {
-        const { isYoutubeApiReady } = this.state;
+        const { youtubeService } = this.state;
+        const isYoutubeApiReady = youtubeService != null;
 
         return (
             <div className="App">
@@ -105,7 +103,7 @@ class App extends Component {
                     <h1 className="App-title">Title</h1>
                 </header>
                 {isYoutubeApiReady ? (
-                    <FullyLoadedScreen youtubeService={this.youtubeService} />
+                    <FullyLoadedScreen youtubeService={youtubeService} />
                 ) : (
                     <div>loading youtube api</div>
                 )}
