@@ -88,7 +88,7 @@ class App extends Component {
 
         this.videoStore = new VideoStore(startupSeed);
 
-        loadYoutubeApi(this.videoStore).subscribe(youtubeService => {
+        loadYoutubeApi(this.videoStore).then(youtubeService => {
             this.setState({ youtubeService })
         });
     }

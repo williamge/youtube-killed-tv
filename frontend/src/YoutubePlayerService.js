@@ -1,6 +1,5 @@
 /* global YT */
 
-import { Stream } from './Stream';
 import { VideoBundle } from './VideoBundle';
 
 function accumulateInLocalStorage(key, itemToAdd) {
@@ -46,28 +45,23 @@ function reportSkip(videoBundle) {
     });
 }
 
-//TODO: split this in to an api-loader, and a player service
-// call ApiLoader.loadIframePlayer, then it sets the player service on a stream
-
 export function loadYoutubeApi(videoStore) {
-    if (window.onYouTubeIframeAPIReady != null) {
-        throw new Error("A YouTube iframe player was already loaded")
-    }
+    return new Promise((resolve, reject) => {
+        if (window.onYouTubeIframeAPIReady != null) {
+            return reject(new Error("A YouTube iframe player was already loaded"));
+        }
 
-    const youtubeServiceStream = new Stream(null);
-
-    window.onYouTubeIframeAPIReady = () => {
-        console.log('youtube api ready');
-        youtubeServiceStream.set(new YoutubePlayerService(videoStore));
-    };
-
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-    return youtubeServiceStream;
-}
+        window.onYouTubeIframeAPIReady = () => {
+            console.log('youtube api ready');
+            resolve(new YoutubePlayerService(videoStore));
+        };
+    
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    });
+};
 
 export class YoutubePlayerService {
     constructor(videoStore) {
